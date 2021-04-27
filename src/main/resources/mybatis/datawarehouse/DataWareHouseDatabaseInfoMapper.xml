@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yingf.mapper.DataWareHouseDatabaseInfoMapper">
+    <resultMap id="BaseResultMap" type="com.yingf.domain.entity.DataWareHouseDatabaseInfo">
+        <result column="id" jdbcType="BIGINT" property="id"/>
+        <result column="database_ip" jdbcType="VARCHAR" property="databaseIp"/>
+        <result column="database_port" jdbcType="INTEGER" property="databasePort"/>
+        <result column="database_type" jdbcType="VARCHAR" property="databaseType"/>
+        <result column="database_name" jdbcType="VARCHAR" property="databaseName"/>
+        <result column="database_username" jdbcType="VARCHAR" property="databaseUsername"/>
+        <result column="database_password" jdbcType="VARCHAR" property="databasePassword"/>
+        <result column="data_model_name" jdbcType="VARCHAR" property="dataModelName"/>
+        <result column="created_time" jdbcType="TIMESTAMP" property="createdTime"/>
+    </resultMap>
+    <insert id="insert" parameterType="com.yingf.domain.entity.DataWareHouseDatabaseInfo">
+        insert into data_ware_house_database_info (id, database_ip, database_port,
+                                                   database_type, database_name, database_username,
+                                                   database_password, data_model_name, created_time)
+        values (#{id,jdbcType=BIGINT}, #{databaseIp,jdbcType=VARCHAR}, #{databasePort,jdbcType=INTEGER},
+                #{databaseType,jdbcType=VARCHAR}, #{databaseName,jdbcType=VARCHAR},
+                #{databaseUsername,jdbcType=VARCHAR},
+                #{databasePassword,jdbcType=VARCHAR}, #{dataModelName,jdbcType=VARCHAR},
+                #{createdTime,jdbcType=TIMESTAMP})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.yingf.domain.entity.DataWareHouseDatabaseInfo"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into data_ware_house_database_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="databaseIp != null">
+                database_ip,
+            </if>
+            <if test="databasePort != null">
+                database_port,
+            </if>
+            <if test="databaseType != null">
+                database_type,
+            </if>
+            <if test="databaseName != null">
+                database_name,
+            </if>
+            <if test="databaseUsername != null">
+                database_username,
+            </if>
+            <if test="databasePassword != null">
+                database_password,
+            </if>
+            <if test="dataModelName != null">
+                data_model_name,
+            </if>
+            <if test="createdTime != null">
+                created_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="databaseIp != null">
+                #{databaseIp,jdbcType=VARCHAR},
+            </if>
+            <if test="databasePort != null">
+                #{databasePort,jdbcType=INTEGER},
+            </if>
+            <if test="databaseType != null">
+                #{databaseType,jdbcType=VARCHAR},
+            </if>
+            <if test="databaseName != null">
+                #{databaseName,jdbcType=VARCHAR},
+            </if>
+            <if test="databaseUsername != null">
+                #{databaseUsername,jdbcType=VARCHAR},
+            </if>
+            <if test="databasePassword != null">
+                #{databasePassword,jdbcType=VARCHAR},
+            </if>
+            <if test="dataModelName != null">
+                #{dataModelName,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <delete id="deleteRecordByDataModelName" parameterType="java.lang.String">
+        delete
+        from data_ware_house_database_info
+        where data_model_name = #{dataModelName, jdbcType=VARCHAR}
+    </delete>
+</mapper>

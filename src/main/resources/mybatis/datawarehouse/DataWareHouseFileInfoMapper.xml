@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yingf.mapper.DataWareHouseFileInfoMapper">
+    <resultMap id="BaseResultMap" type="com.yingf.domain.entity.DataWareHouseFileInfo">
+        <result column="id" jdbcType="BIGINT" property="id"/>
+        <result column="file_id" jdbcType="BIGINT" property="fileId"/>
+        <result column="file_name" jdbcType="VARCHAR" property="fileName"/>
+        <result column="file_path" jdbcType="VARCHAR" property="filePath"/>
+        <result column="data_model_name" jdbcType="VARCHAR" property="dataModelName"/>
+        <result column="created_time" jdbcType="TIMESTAMP" property="createdTime"/>
+    </resultMap>
+    <insert id="insert" parameterType="com.yingf.domain.entity.DataWareHouseFileInfo">
+        insert into data_ware_house_file_info (id, file_id, file_name,
+                                               file_path, data_model_name, created_time)
+        values (#{id,jdbcType=BIGINT}, #{fileId,jdbcType=BIGINT}, #{fileName,jdbcType=VARCHAR},
+                #{filePath,jdbcType=VARCHAR}, #{dataModelName,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP})
+    </insert>
+    <insert id="insertSelective" parameterType="com.yingf.domain.entity.DataWareHouseFileInfo"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into data_ware_house_file_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="fileId != null">
+                file_id,
+            </if>
+            <if test="fileName != null">
+                file_name,
+            </if>
+            <if test="filePath != null">
+                file_path,
+            </if>
+            <if test="dataModelName != null">
+                data_model_name,
+            </if>
+            <if test="createdTime != null">
+                created_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="fileId != null">
+                #{fileId,jdbcType=BIGINT},
+            </if>
+            <if test="fileName != null">
+                #{fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="filePath != null">
+                #{filePath,jdbcType=VARCHAR},
+            </if>
+            <if test="dataModelName != null">
+                #{dataModelName,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <delete id="deleteRecordByDataModelName" parameterType="string">
+        delete from data_ware_house_file_info
+        where data_model_name = #{dataModelName, jdbcType=VARCHAR}
+    </delete>
+</mapper>
