@@ -1,7 +1,7 @@
 package com.yingf.service;
 
-import com.yingf.project.datacenter.query.MultipartFileQuery;
-import com.yingf.project.datacenter.vo.CheckFileUpLoadVO;
+import com.yingf.domain.query.MultipartFileQuery;
+import com.yingf.domain.vo.CheckFileUpLoadVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;

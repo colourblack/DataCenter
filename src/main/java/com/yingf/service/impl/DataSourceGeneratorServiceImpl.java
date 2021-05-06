@@ -1,5 +1,16 @@
 package com.yingf.service.impl;
 
+import com.yingf.async.AsyncStoreThirdPartyData;
+import com.yingf.constant.DataCenterConstant;
+import com.yingf.database.IDataBaseWorkerService;
+import com.yingf.domain.entity.DataWareHouseDatabaseInfo;
+import com.yingf.domain.entity.DataWareHouseFileInfo;
+import com.yingf.domain.entity.DataWareHouseInfo;
+import com.yingf.domain.entity.FileUploadInfo;
+import com.yingf.domain.vo.PageResultVO;
+import com.yingf.domain.vo.original.ExcelPreviewInfoVO;
+import com.yingf.domain.vo.original.SheetDataPreviewVO;
+import com.yingf.excel.ExcelParseProcessor;
 import com.yingf.mapper.DataWareHouseDatabaseInfoMapper;
 import com.yingf.mapper.DataWareHouseFileInfoMapper;
 import com.yingf.mapper.DataWareHouseInfoMapper;
@@ -87,11 +98,8 @@ public class DataSourceGeneratorServiceImpl implements IDataSourceGeneratorServi
         if (redisUtil.existsKey(redisKey)) {
             return true;
         }
-        // 判断数据库中是否存在该数据源名称
-        if (dataWareHouseInfoMapper.selectOneByDataModelName(dataModelName) != null) {
-            return true;
-        }
-        return false;
+        // 判断数据库中是否存在该数据源名称并返回
+        return dataWareHouseInfoMapper.selectOneByDataModelName(dataModelName) != null;
     }
 
 

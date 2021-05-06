@@ -1,13 +1,17 @@
 package com.yingf.service.impl;
 
+import com.yingf.constant.CleaningPlanConstant;
+import com.yingf.constant.DataCenterConstant;
 import com.yingf.domain.entity.AssociationTable;
 import com.yingf.domain.entity.TableStruct;
+import com.yingf.domain.query.clean.CleaningQuery;
 import com.yingf.domain.vo.original.TableDataTypeVO;
 import com.yingf.service.IDataCenterCleaningService;
 import com.yingf.service.IDataCenterCommonService;
 import com.yingf.util.DataModelRedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +35,7 @@ public class DataCenterCleaningServiceImpl implements IDataCenterCleaningService
 
     final KafkaTemplate<String, Object> kafkaTemplate;
 
+    @Autowired
     public DataCenterCleaningServiceImpl(DataModelRedisUtil dataModelRedisUtil, IDataCenterCommonService dataCenterCommonServiceImpl,
                                          KafkaTemplate<String, Object> kafkaTemplate) {
         this.dataModelRedisUtil = dataModelRedisUtil;

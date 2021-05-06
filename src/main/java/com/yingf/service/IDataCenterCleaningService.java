@@ -2,6 +2,7 @@ package com.yingf.service;
 
 
 import com.yingf.domain.entity.TableStruct;
+import com.yingf.domain.query.clean.CleaningQuery;
 import com.yingf.domain.vo.original.TableDataTypeVO;
 
 /**

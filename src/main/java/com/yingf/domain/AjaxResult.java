@@ -58,6 +58,9 @@ public class AjaxResult<T> implements Serializable {
         return new AjaxResult<>(HttpStatus.SUCCESS, HttpMessage.SUCCESS);
     }
 
+    public static <T> AjaxResult<T> success(String message) {return new AjaxResult<>(HttpStatus.SUCCESS, message);}
+
+
     /**
      * 返回成功消息
      *
@@ -66,6 +69,10 @@ public class AjaxResult<T> implements Serializable {
      */
     public static <T> AjaxResult<T> success(T data) {
         return new AjaxResult<>(HttpStatus.SUCCESS, HttpMessage.SUCCESS, data);
+    }
+
+    public static <T> AjaxResult<T> success(String message, T data) {
+        return new AjaxResult<>(HttpStatus.SUCCESS, message, data);
     }
 
     /**
@@ -96,6 +103,10 @@ public class AjaxResult<T> implements Serializable {
         return new AjaxResult<>(HttpStatus.SYSTEM_ERROR, HttpMessage.SYSTEM_ERROR);
     }
 
+    public static <T> AjaxResult<T> sysError(String message) {
+        return new AjaxResult<>(HttpStatus.SYSTEM_ERROR, message);
+    }
+
     /**
      * 服务器异常
      *
@@ -104,6 +115,10 @@ public class AjaxResult<T> implements Serializable {
      */
     public static <T> AjaxResult<T> sysError(T data) {
         return new AjaxResult<>(HttpStatus.SYSTEM_ERROR, HttpMessage.SYSTEM_ERROR, data);
+    }
+
+    public static <T> AjaxResult<T> sysError(String message, T data) {
+        return new AjaxResult<>(HttpStatus.SYSTEM_ERROR, message, data);
     }
 
     /**

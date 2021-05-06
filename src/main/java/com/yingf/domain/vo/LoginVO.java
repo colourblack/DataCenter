@@ -18,13 +18,8 @@ public class LoginVO implements Serializable {
 
     private final static long serialVersionUID = 1L;
 
-    private String username;
+    private String accountName;
 
     private String password;
-
-    private Integer userId;
-
-
-
 
 }

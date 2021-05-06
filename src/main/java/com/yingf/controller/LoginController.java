@@ -2,6 +2,8 @@ package com.yingf.controller;
 
 import com.yingf.domain.AjaxResult;
 import com.yingf.domain.vo.LoginVO;
+import com.yingf.domain.vo.TokenVO;
+import com.yingf.service.ILoginService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,15 +16,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class LoginController {
 
-    private static final String USERNAME = "ADMIN";
-    private static final String PASSWORD = "ADMIN";
-    private static final Integer USER_ID = 1;
+    private final ILoginService loginServiceImpl;
+
+    public LoginController(ILoginService loginServiceImpl) {
+        this.loginServiceImpl = loginServiceImpl;
+    }
 
     @PostMapping("/login")
-    public AjaxResult<String> login(@RequestBody LoginVO loginVO) {
-        if (loginVO.getUserId().equals(USER_ID) && loginVO.getUsername().equals(USERNAME)
-                && loginVO.getPassword().equals(PASSWORD)) {
-            return AjaxResult.success();
+    public AjaxResult<TokenVO> login(@RequestBody LoginVO loginVO) {
+        String token = loginServiceImpl.login(loginVO.getAccountName(), loginVO.getPassword());
+        if (token != null) {
+            TokenVO tokenVO = new TokenVO();
+            tokenVO.setToken(token);
+            return AjaxResult.success(tokenVO);
         }
         return AjaxResult.failed();
     }

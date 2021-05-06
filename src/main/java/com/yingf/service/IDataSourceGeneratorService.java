@@ -1,9 +1,9 @@
 package com.yingf.service;
 
-import com.yingf.project.datacenter.domain.DataWareHouseDatabaseInfo;
-import com.yingf.project.datacenter.vo.PageResultVO;
-import com.yingf.project.datacenter.vo.original.ExcelPreviewInfoVO;
-import com.yingf.project.datacenter.vo.original.SheetDataPreviewVO;
+import com.yingf.domain.entity.DataWareHouseDatabaseInfo;
+import com.yingf.domain.vo.PageResultVO;
+import com.yingf.domain.vo.original.ExcelPreviewInfoVO;
+import com.yingf.domain.vo.original.SheetDataPreviewVO;
 
 import java.util.List;
 

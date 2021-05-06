@@ -1,12 +1,31 @@
 package com.yingf.controller;
 
+import com.yingf.constant.DataCenterConstant;
+import com.yingf.domain.AjaxResult;
+import com.yingf.domain.entity.DataWareHouseDatabaseInfo;
+import com.yingf.domain.query.MultipartFileQuery;
+import com.yingf.domain.query.SaveDatabaseQuery;
+import com.yingf.domain.query.SaveExcelQuery;
+import com.yingf.domain.vo.CheckFileUpLoadVO;
+import com.yingf.domain.vo.PageResultVO;
+import com.yingf.domain.vo.original.SheetDataPreviewVO;
+import com.yingf.service.IDataCenterCommonService;
+import com.yingf.service.IDataSourceGeneratorService;
+import com.yingf.service.IFileTransferService;
+import com.yingf.service.ITokenService;
 import com.yingf.util.DataModelRedisUtil;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 
 /**
  * 数据建模 - 生成数据源的相关接口
@@ -27,7 +46,7 @@ public class DataCenterGeneratorController {
 
     final IDataCenterCommonService dataCenterCommonServiceImpl;
 
-    final TokenService tokenService;
+    final ITokenService tokenServiceImpl;
 
     final DataModelRedisUtil redisUtil;
 
@@ -35,24 +54,24 @@ public class DataCenterGeneratorController {
     @Autowired
     public DataCenterGeneratorController(IDataSourceGeneratorService dataWareHouseGeneratorServiceImpl,
                                          IFileTransferService fileTransferServiceImpl,
-                                         IDataCenterCommonService dataCenterCommonServiceImpl, TokenService tokenService, DataModelRedisUtil redisUtil) {
+                                         IDataCenterCommonService dataCenterCommonServiceImpl, ITokenService tokenServiceImpl, DataModelRedisUtil redisUtil) {
         this.dataWareHouseGeneratorServiceImpl = dataWareHouseGeneratorServiceImpl;
         this.fileTransferServiceImpl = fileTransferServiceImpl;
         this.dataCenterCommonServiceImpl = dataCenterCommonServiceImpl;
-        this.tokenService = tokenService;
+        this.tokenServiceImpl = tokenServiceImpl;
         this.redisUtil = redisUtil;
     }
 
 
     @ApiOperation("校验数据模型的名称是否已经存在")
     @GetMapping("/get/check-name")
-    public AjaxResult checkDataModelName(@ApiParam("数据模型的名称") @RequestParam(value = "dataModelName") String dataModelName,
+    public AjaxResult<String> checkDataModelName(@ApiParam("数据模型的名称") @RequestParam(value = "dataModelName") String dataModelName,
                                          HttpServletRequest request) {
         // 校验数据模型的名称是否合法
         if (dataModelName == null || (dataModelName.trim().length() == 0)) {
             return AjaxResult.success("数据模型的名称非法, 请检查数据模型名称");
         }
-        long userId = tokenService.getLoginUser(request).getUser().getUserId();
+        long userId = tokenServiceImpl.getLoginUser(request).getSysAccountInfo().getUserId();
         log.debug("等待校验的数据模型名称为: {}, 登录的用户id为: {}", dataModelName, userId);
         if (!dataWareHouseGeneratorServiceImpl.hasDataModelName(dataModelName, userId)) {
             // 校验结果为false, 说明该名称未被使用
@@ -70,7 +89,7 @@ public class DataCenterGeneratorController {
      */
     @ApiOperation("第三方数据源为数据库 - 测试数据源连接与否并且保存成功的数据源配置信息")
     @PostMapping("/set/third-party-database")
-    public AjaxResult testAndSetDataSource(@RequestBody DataWareHouseDatabaseInfo databaseInfo, HttpServletRequest request) {
+    public AjaxResult<Boolean>  testAndSetDataSource(@RequestBody DataWareHouseDatabaseInfo databaseInfo, HttpServletRequest request) {
         if (checkDataModelNameUserId(request, databaseInfo.getDataModelName())) {
             return AjaxResult.success("数据模型的名称与用户信息不匹配, 请重新创建数据模型");
         }
@@ -94,7 +113,7 @@ public class DataCenterGeneratorController {
      */
     @ApiOperation("第三方数据源为数据库 - 分页查询数据库所有表")
     @GetMapping("/get/db-tableList")
-    public AjaxResult getDataBaseTableList(@ApiParam("数据源名称") @RequestParam(value = "dataModelName") String dataModelName,
+    public AjaxResult<PageResultVO> getDataBaseTableList(@ApiParam("数据源名称") @RequestParam(value = "dataModelName") String dataModelName,
                                            @ApiParam("分页当前页") @RequestParam(value = "currPage") Integer currPage,
                                            @ApiParam("分页页大小") @RequestParam(value = "pageSize") Integer pageSize,
                                            HttpServletRequest request) {
@@ -105,7 +124,7 @@ public class DataCenterGeneratorController {
 
         PageResultVO pageResultVO = dataWareHouseGeneratorServiceImpl.getDbTableNameList(dataModelName, currPage, pageSize, null);
         if (pageResultVO == null) {
-            return AjaxResult.error("无法查询数据库的列表名", dataModelName);
+            return AjaxResult.sysError("无法查询数据库的列表名 - " +  dataModelName);
         } else {
             return AjaxResult.success(pageResultVO);
         }
@@ -123,7 +142,7 @@ public class DataCenterGeneratorController {
      */
     @ApiOperation("第三方数据源为数据库 - 根据关键字模糊搜索表")
     @GetMapping("/get/db-tableList-by-keyword")
-    public AjaxResult getDataBaseTableListByKeyword(@ApiParam("数据源名称") @RequestParam(value = "dataModelName") String dataModelName,
+    public AjaxResult<PageResultVO> getDataBaseTableListByKeyword(@ApiParam("数据源名称") @RequestParam(value = "dataModelName") String dataModelName,
                                                     @ApiParam("分页当前页") @RequestParam(value = "currPage") Integer currPage,
                                                     @ApiParam("分页页大小") @RequestParam(value = "pageSize") Integer pageSize,
                                                     @ApiParam("模糊搜索关键字") @RequestParam(value = "keyword") String keyword,
@@ -140,7 +159,7 @@ public class DataCenterGeneratorController {
 
         PageResultVO pageResultVO = dataWareHouseGeneratorServiceImpl.getDbTableNameList(dataModelName, currPage, pageSize, keyword);
         if (pageResultVO == null) {
-            return AjaxResult.error("无法查询数据库的列表名", dataModelName);
+            return AjaxResult.sysError("无法查询数据库的列表名 - " + dataModelName);
         } else {
             return AjaxResult.success(pageResultVO);
         }
@@ -158,7 +177,7 @@ public class DataCenterGeneratorController {
      */
     @ApiOperation("第三方数据源为数据库 - 预览选中表的数据")
     @GetMapping("/get/db-table-detail-preview")
-    public AjaxResult showTableDetail(@ApiParam("数据表表名") @RequestParam(value = "tableName") String tableName,
+    public AjaxResult<PageResultVO> showTableDetail(@ApiParam("数据表表名") @RequestParam(value = "tableName") String tableName,
                                       @ApiParam("数据源名称") @RequestParam(value = "dataModelName") String dataModelName,
                                       HttpServletRequest request) {
 
@@ -170,7 +189,7 @@ public class DataCenterGeneratorController {
         if (tablePreview != null) {
             return AjaxResult.success(tablePreview);
         } else {
-            return AjaxResult.error("出现错误! 无法查询选中列表的信息");
+            return AjaxResult.sysError("出现错误! 无法查询选中列表的信息");
         }
     }
 
@@ -179,14 +198,14 @@ public class DataCenterGeneratorController {
      */
     @ApiOperation("第三方数据源为数据库 - 保存选中数据源数据")
     @PostMapping("/set/db-store-data")
-    public AjaxResult storeThirdPartyDatabaseData(@RequestBody SaveDatabaseQuery saveDatabaseQuery, HttpServletRequest request) {
+    public AjaxResult<String> storeThirdPartyDatabaseData(@RequestBody SaveDatabaseQuery saveDatabaseQuery, HttpServletRequest request) {
         if (StringUtils.isEmpty(saveDatabaseQuery.getDataModelName()) || saveDatabaseQuery.getTableNameList().isEmpty()) {
             log.warn("请求参数有误, 请检擦参数");
-            return AjaxResult.error("请求参数有误, 请检擦参数");
+            return AjaxResult.sysError("请求参数有误, 请检擦参数");
         }
 
-        long userId = tokenService.getLoginUser(request).getUser().getUserId();
-        String username = tokenService.getLoginUser(request).getUsername();
+        long userId = tokenServiceImpl.getLoginUser(request).getSysAccountInfo().getUserId();
+        String username = tokenServiceImpl.getLoginUser(request).getUsername();
         String redisKey = DataCenterConstant.REDIS_DATA_WARE_HOUSE_NAME_PREFIX + saveDatabaseQuery.getDataModelName();
         if (redisUtil.getValue(redisKey) == null || (long) redisUtil.getValue(redisKey) != (userId)) {
             return AjaxResult.success("数据模型的名称与用户信息不匹配, 请重新创建数据模型");
@@ -197,7 +216,7 @@ public class DataCenterGeneratorController {
                 saveDatabaseQuery.getTableNameList(), userId, username)) {
             return AjaxResult.success();
         } else {
-            return AjaxResult.error();
+            return AjaxResult.sysError();
         }
     }
 
@@ -211,7 +230,7 @@ public class DataCenterGeneratorController {
      */
     @ApiOperation("第三方数据源为文件 - 检验文件是否已经存在")
     @PostMapping("/set/third-party-file-check")
-    public AjaxResult checkIsUploaded(MultipartFileQuery param) {
+    public AjaxResult<CheckFileUpLoadVO> checkIsUploaded(MultipartFileQuery param) {
         return AjaxResult.success(fileTransferServiceImpl.findByFileMd5(param.getMd5()));
     }
 
@@ -225,8 +244,8 @@ public class DataCenterGeneratorController {
      */
     @ApiOperation("第三方数据源为文件 - 文件分片上传")
     @PostMapping("/set/third-party-file-upload")
-    public AjaxResult uploadExcel(MultipartFileQuery param,
-                                  @RequestParam(value = "data", required = false) MultipartFile multipartFile) {
+    public AjaxResult<CheckFileUpLoadVO> uploadExcel(MultipartFileQuery param,
+                                                     @RequestParam(value = "data", required = false) MultipartFile multipartFile) {
         CheckFileUpLoadVO vo = null;
         try {
             vo = fileTransferServiceImpl.doUpload(param, multipartFile);
@@ -238,7 +257,7 @@ public class DataCenterGeneratorController {
 
     @ApiOperation("第三方数据源为Excel文件 - 解析Excel文件")
     @GetMapping("/get/excel-sheetList")
-    public AjaxResult getExcelSheetList(@ApiParam("Excel文件的md5值") @RequestParam("fileMd5") String fileMd5,
+    public AjaxResult<PageResultVO> getExcelSheetList(@ApiParam("Excel文件的md5值") @RequestParam("fileMd5") String fileMd5,
                                         @ApiParam("数据源名称") @RequestParam(value = "dataModelName") String dataModelName,
                                         @ApiParam("分页当前页") @RequestParam(value = "currPage") Integer currPage,
                                         @ApiParam("分页页大小") @RequestParam(value = "pageSize") Integer pageSize,
@@ -249,7 +268,7 @@ public class DataCenterGeneratorController {
 
         PageResultVO result = dataWareHouseGeneratorServiceImpl.getExcelSheetList(fileMd5, currPage, pageSize);
         if (result == null) {
-            return AjaxResult.error("无法正确解析Excel文件信息, 请检查文件内容是否有误或重新上传");
+            return AjaxResult.sysError("无法正确解析Excel文件信息, 请检查文件内容是否有误或重新上传");
         }
         return AjaxResult.success(result);
 
@@ -258,7 +277,7 @@ public class DataCenterGeneratorController {
 
     @ApiOperation("第三方数据源为Excel文件 - 获取指定sheet的预览信息")
     @GetMapping("/get/excel-sheet-preview")
-    public AjaxResult getExcelSheetDetailPreview(@ApiParam("Excel文件的md5值") @RequestParam(value = "fileMd5") String fileMd5,
+    public AjaxResult<SheetDataPreviewVO> getExcelSheetDetailPreview(@ApiParam("Excel文件的md5值") @RequestParam(value = "fileMd5") String fileMd5,
                                                  @ApiParam("数据源名称") @RequestParam(value = "dataModelName") String dataModelName,
                                                  @ApiParam("Excel Sheet名称") @RequestParam(value = "sheetName") String sheetName,
                                                  HttpServletRequest request) {
@@ -268,7 +287,7 @@ public class DataCenterGeneratorController {
 
         SheetDataPreviewVO vo = dataWareHouseGeneratorServiceImpl.getExcelSheetPreview(fileMd5, sheetName);
         if (vo == null) {
-            return AjaxResult.error("无法正确获取sheet的预览信息, 请检查Sheet的名称是否合法, 或重新上传Excel");
+            return AjaxResult.sysError("无法正确获取sheet的预览信息, 请检查Sheet的名称是否合法, 或重新上传Excel");
         } else {
             return AjaxResult.success(vo);
         }
@@ -279,20 +298,20 @@ public class DataCenterGeneratorController {
      */
     @ApiOperation("第三方数据源为Excel - 保存选中sheet的数据")
     @PostMapping("/set/excel-store-data")
-    public AjaxResult storeThirdPartyExcelData(@RequestBody SaveExcelQuery saveExcelQuery, HttpServletRequest request) {
+    public AjaxResult<String> storeThirdPartyExcelData(@RequestBody SaveExcelQuery saveExcelQuery, HttpServletRequest request) {
         String redisKey = DataCenterConstant.REDIS_DATA_WARE_HOUSE_NAME_PREFIX + saveExcelQuery.getDataModelName();
-        long userId = tokenService.getLoginUser(request).getUser().getUserId();
+        long userId = tokenServiceImpl.getLoginUser(request).getSysAccountInfo().getUserId();
         if (redisUtil.getValue(redisKey) == null || (long) redisUtil.getValue(redisKey) != (userId)) {
             return AjaxResult.success("数据模型的名称与用户信息不匹配, 请重新创建数据模型");
 
         }
-        String username = tokenService.getLoginUser(request).getUsername();
+        String username = tokenServiceImpl.getLoginUser(request).getUsername();
 
         if (dataWareHouseGeneratorServiceImpl.storeThirdPartyExcelData(saveExcelQuery.getDataModelName(),
                 saveExcelQuery.getFileMd5(), saveExcelQuery.getSheetNameList(), userId, username)) {
             return AjaxResult.success();
         } else {
-            return AjaxResult.error();
+            return AjaxResult.sysError();
         }
     }
 
@@ -307,7 +326,7 @@ public class DataCenterGeneratorController {
      */
     @ApiOperation("分页查询数据表")
     @GetMapping("/get/table-detail")
-    public AjaxResult getTableDetail(@ApiParam("数据表名称") @RequestParam(value = "tableName") String tableName,
+    public AjaxResult<PageResultVO> getTableDetail(@ApiParam("数据表名称") @RequestParam(value = "tableName") String tableName,
                                      @ApiParam("数据源名称") @RequestParam(value = "dataModelName") String dataModelName,
                                      @ApiParam("分页当前页")  @RequestParam(value = "currPage") Integer currPage,
                                      @ApiParam("分页页大小")  @RequestParam(value = "pageSize") Integer pageSize) {
@@ -324,13 +343,12 @@ public class DataCenterGeneratorController {
      */
     @ApiOperation("获取数据源信息")
     @GetMapping("/get/datasource-info")
-    public AjaxResult getDataSourceInfo(@ApiParam("分页当前页") @RequestParam(value = "currPage") Integer currPage,
+    public AjaxResult<PageResultVO> getDataSourceInfo(@ApiParam("分页当前页") @RequestParam(value = "currPage") Integer currPage,
                                         @ApiParam("分页页大小") @RequestParam(value = "pageSize") Integer pageSize) {
         PageResultVO pageResult = dataCenterCommonServiceImpl.getDataSourceInfo(currPage, pageSize);
         log.debug("进入数据源模块, 读取数据源信息");
         return AjaxResult.success(pageResult);
     }
-
 
     /**
      * 在进行新的数据建模时, 需要判断当前用户信息和数据模块的名称是否匹配,
@@ -342,11 +360,8 @@ public class DataCenterGeneratorController {
      * @return 用户信息是否与当前数据建模模块名称相匹配
      */
     private boolean checkDataModelNameUserId(HttpServletRequest request, String dataModelName) {
-        long userId = tokenService.getLoginUser(request).getUser().getUserId();
+        long userId = tokenServiceImpl.getLoginUser(request).getSysAccountInfo().getUserId();
         String redisKey = DataCenterConstant.REDIS_DATA_WARE_HOUSE_NAME_PREFIX + dataModelName;
         return redisUtil.getValue(redisKey) == null || (long) redisUtil.getValue(redisKey) != (userId);
     }
-
-
-
 }
