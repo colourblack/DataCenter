@@ -56,6 +56,6 @@
     <select id="selectAccount" resultType="com.yingf.domain.entity.SysAccountInfo">
         select user_id, account_name, password, is_deleted, created_time
         from sys_account_info
-        where account_name=#{accountName,jdbcTYpe=VARCHAR}
+        where account_name=#{accountName,jdbcType=VARCHAR}
     </select>
 </mapper>
