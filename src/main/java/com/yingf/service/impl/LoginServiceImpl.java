@@ -41,7 +41,7 @@ public class LoginServiceImpl implements ILoginService {
                     .authenticate(new UsernamePasswordAuthenticationToken(accountName, password));
         }
         catch (Exception e) {
-            log.error("登陆失败!");
+            log.error("登陆失败!, {}", e.getMessage());
         }
         LoginUserDetails loginUser = (LoginUserDetails) authentication.getPrincipal();
         // 生成token

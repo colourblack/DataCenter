@@ -63,7 +63,7 @@ public class SysAccountInfo {
                 ", accountName='" + accountName + '\'' +
                 ", password='" + password + '\'' +
                 ", isDeleted=" + isDeleted +
-                ", createdTime=" + createdTime +
+                ", createdTime=" + createdTime.toString() +
                 '}';
     }
 }

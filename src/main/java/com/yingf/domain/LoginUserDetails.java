@@ -86,33 +86,54 @@ public class LoginUserDetails implements UserDetails {
         return null;
     }
 
+    /**
+     * 获取数据库中保存的后的加密密码
+     * 必须重写该方法, 确保UsernamePasswordAuthenticationFilter的attemptAuthentication()能够进行校验
+     * @return 数据库中的密码
+     */
     @Override
     public String getPassword() {
-        return null;
+        return sysAccountInfo.getPassword();
     }
 
+    /**
+     * 获取数据库中的用户名
+     * @return 数据库中的用户名
+     */
     @Override
     public String getUsername() {
-        return null;
+        return sysAccountInfo.getAccountName();
     }
 
+    /**
+     * 账户是否未过期,过期无法验证
+     */
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return true;
     }
 
+    /**
+     * 指定用户是否解锁,锁定的用户无法进行身份验证
+     */
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return true;
     }
 
+    /**
+     * 指示是否已过期的用户的凭据(密码),过期的凭据防止认证
+     */
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true;
     }
 
+    /**
+     * 是否可用 ,禁用的用户不能身份验证
+     */
     @Override
     public boolean isEnabled() {
-        return false;
+        return this.getSysAccountInfo().getIsDeleted() != 1;
     }
 }

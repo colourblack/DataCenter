@@ -53,9 +53,11 @@
             </if>
         </trim>
     </insert>
-    <select id="selectAccount" resultType="com.yingf.domain.entity.SysAccountInfo">
-        select user_id, account_name, password, is_deleted, created_time
+
+    <select id="selectAccount" resultMap="BaseResultMap">
+        select `user_id`, `account_name`, `password`, `is_deleted`, `created_time`
         from sys_account_info
         where account_name=#{accountName,jdbcType=VARCHAR}
+        limit 1
     </select>
 </mapper>

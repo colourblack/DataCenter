@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private final static Logger log = LoggerFactory.getLogger(UserDetailsService.class);
+    private final static Logger log = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
 
     private final SysAccountInfoMapper sysAccountInfoMapper;
 
@@ -36,6 +36,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             log.info("登录用户：{} 已被停用.", accountName);
             throw new UsernameNotFoundException("对不起，您的账号：" + accountName + " 已停用");
         }
+        log.debug("用户登陆信息: {}", sysAccountInfo.toString());
         return createUserDetails(sysAccountInfo);
     }
 

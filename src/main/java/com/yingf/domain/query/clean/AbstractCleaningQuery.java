@@ -1,6 +1,5 @@
 package com.yingf.domain.query.clean;
 
-import com.yingf.domain.query.clean.CleaningQuery;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -10,7 +9,7 @@ import java.io.Serializable;
  * @author yingf Fangjunjin
  * @Date 2021/3/16
  */
-@ApiModel(value = "CleaningQuery", description = "执行过滤方案参数")
+@ApiModel(value = "AbstractCleaningQuery", description = "执行过滤方案参数")
 public abstract class AbstractCleaningQuery implements Serializable, CleaningQuery {
 
     private final static long serialVersionUID = 1L;
